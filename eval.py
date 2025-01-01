@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModel
 import torch.nn.functional as F
 from tqdm import tqdm
 import os
-
+import matplotlib.pyplot as plt
 class RouterDataset(Dataset):
     def __init__(
         self,
@@ -250,6 +250,18 @@ class RouterDataset(Dataset):
             tokenizer (Any): Tokenizer instance.
         """
         self.tokenizer = tokenizer
+    def plot_scores_from_processed_data(self):
+    # 提取每个窗口的score
+        scores = [item['score'] for item in self.processed_data if 'score' in item]
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(scores, marker='o', label='Score')
+        plt.title('Score Progression Across Processed Data')
+        plt.xlabel('Window Index')
+        plt.ylabel('Score')
+        plt.legend()
+        plt.grid()
+        plt.show()
 
 
 # 打开 JSON 文件
