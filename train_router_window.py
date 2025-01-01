@@ -74,7 +74,7 @@ class RouterDataset(Dataset):
         self.embedding_cache_path = embedding_cache_path
 
         # 加载数据
-        self.data = self.load_data(self.data_path)
+        self.data = self.load_data(self.data_path)  #可以不变
 
         # 初始化分词器
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -86,7 +86,7 @@ class RouterDataset(Dataset):
         # 初始化嵌入模型
         self.embedding_model = AutoModel.from_pretrained(self.embedding_model_name).to(self.device)
         self.embedding_model.eval()  # 设置为评估模式
-        self.router_node=list(self.data[0]['scores'].keys())
+        self.router_node=list(self.data[0]['scores'].keys())  #这里要修改一下，eval是没有的
         # 计算或加载嵌入
         self.embeddings = self.load_or_compute_embeddings()
 
@@ -130,7 +130,7 @@ class RouterDataset(Dataset):
                 torch.save(embeddings, self.embedding_cache_path)
         else:
             print("Computing embeddings...")
-            embeddings = self.compute_embeddings([entry['question'] for entry in self.data])
+            embeddings = self.compute_embeddings([entry['question'] for entry in self.data],batch_size=64) #要修改一下
             torch.save(embeddings, self.embedding_cache_path)
             print(f"Embeddings saved to {self.embedding_cache_path}")
         return embeddings
@@ -202,9 +202,9 @@ class RouterDataset(Dataset):
         从一个对话轮次中生成滑动窗口。
         """
 
-        combined_question = " ".join([item['question'] for item in round_data])
-        combined_scores = round_data[-1]['scores']  # 使用最后一个问题的 scores
-        cluster_id =round_data[-1].get('cluster_id', 0)
+        combined_question = " ".join([item['question'] for item in round_data]) #这里要修改一下 
+        combined_scores = round_data[-1]['scores']  # 使用最后一个问题的 scores   #这里以下可以删掉
+        cluster_id =round_data[-1].get('cluster_id', 0)                                     
         windows={
                 'question': combined_question,
                 'scores': combined_scores,
@@ -397,9 +397,9 @@ def evaluation(router_model, dataset_paths, dataset_types, tokenizer, batch_size
 
 
 if __name__ == '__main__': 
-    device = "cuda:2"
+    device = "cuda:1"
     parser = argparse.ArgumentParser(description="the training code for router")
-    writer = SummaryWriter(log_dir='./logs/experiment/experiment_window/experiment_select_base_0.92_2000')
+    writer = SummaryWriter(log_dir='./logs/experiment/experiment_window/experiment_select_base_0.91_2000')
     # dataset and path
     parser.add_argument('--data_paths', nargs='+', default=["./datasets/split2_model7_cluster/gsm8k-train.json","./datasets/split2_model7_cluster/humaneval_train.json", "./datasets/split2_model7_cluster/arc_challenge_train.json", "./datasets/split2_model7_cluster/mmlu_train.json","./datasets/split2_model7_cluster/cmmlu_train.json",])
     parser.add_argument('--test_data_paths',nargs='+', default=["./datasets/split2_model7/gsm8k-test.json", "./datasets/split2_model7/humaneval_test.json", "./datasets/split2_model7/arc_challenge_test.json", "./datasets/split2_model7/mmlu_test.json", "./datasets/split2_model7/cmmlu_test.json"])
@@ -412,7 +412,7 @@ if __name__ == '__main__':
     parser.add_argument('--training_steps', type=int, default=2000)
     parser.add_argument('--eval_steps',type=int,default=50)
     parser.add_argument('--learning_rate', type=float, default=0.00005)
-    parser.add_argument('--save_path', type=str, default='logs/models/model_select_base_0.92_2000')
+    parser.add_argument('--save_path', type=str, default='logs/models/model_select_base_0.91_2000')
     parser.add_argument('--top_k', type=int, default=3)
     parser.add_argument('--last_k',type=int, default=3)
     parser.add_argument('--tempreture', type=int, default=0.2)
